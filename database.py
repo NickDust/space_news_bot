@@ -23,11 +23,16 @@ class Database:
         self.conn.commit()
 
     def save_img(self, title, description, url):
+        self.cur.execute("SELECT img_id FROM nasa_img WHERE url = %s;", (url,))
+        existing = self.cur.fetchone()
+        if existing:
+            return False # if the image is already in the db return true
         self.cur.execute("""
             INSERT INTO nasa_img(title, description, url)
             VALUES (%s, %s, %s)
             """, (title, description, url))
         self.conn.commit()
+        return True
 
     def close(self):
         self.cur.close()

@@ -2,6 +2,7 @@ from handlers import img_cache, image_of_day
 import asyncio
 from open_ai import Client
 from database import Database
+from scraper import people_in_space
 
 class Callback:
     def __init__(self, update, context):
@@ -17,7 +18,8 @@ class Callback:
             "next": self.next,
             "save": self.save,
             "about": self.about,
-            "space_images": self.space_images
+            "space_images": self.space_images,
+            "p_in_space": self.p_in_space
         }
         func = actions.get(self.query.data)
         if func:
@@ -48,8 +50,11 @@ class Callback:
         try:
             db = Database()
             await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="Saving in progress..💫​")
-            db.save_img(title=img_cache["title"], description=img_cache["explanation"], url=img_cache["url"])
-            await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="✅​Image saved!💫​")
+            saved = db.save_img(title=img_cache["title"], description=img_cache["explanation"], url=img_cache["url"])
+            if saved:
+                await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="✅​Image saved!💫​")
+            else:
+                await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="✔️Image already in the database!💫​")
         except Exception as e:
             print("Error saving image:", e)
             await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="❌​Failed to save image.💫​")
@@ -59,3 +64,18 @@ class Callback:
 
     async def space_images(self):
         await image_of_day(self.update, self.context)
+
+    async def p_in_space(self):
+        loading_message = await self.update.callback_query.message.reply_text("Loading.")
+        for dots in ["Loading..", "Loading..."]:
+            await asyncio.sleep(0.5)
+            await loading_message.edit_text(dots)
+        
+        names, number = people_in_space()
+
+        a_list = list(names.keys())
+        a_names = [f".{name}" for name in a_list]
+        text = "\n".join(a_names)
+        
+        await loading_message.delete()
+        await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space 🧑‍🚀​:\n {text} 📡")
