@@ -3,6 +3,7 @@ import asyncio
 from open_ai import Client
 from database import Database
 from scraper import people_in_space
+from datetime import timedelta, datetime
 
 class Callback:
     def __init__(self, update, context):
@@ -66,16 +67,23 @@ class Callback:
         await image_of_day(self.update, self.context)
 
     async def p_in_space(self):
+        db = Database()
         loading_message = await self.update.callback_query.message.reply_text("Loading.")
         for dots in ["Loading..", "Loading..."]:
             await asyncio.sleep(0.5)
             await loading_message.edit_text(dots)
-        
-        names, number = people_in_space()
+        db_data = db.get_p_space_from_db()
+        if db_data:
+            n_of_ppl, people, last_update = db_data
+            if datetime.now() - last_update < timedelta(hours=5): # if data are still fresh get them from db
+                list_a = [f".{name} - {role} " for name, role in people.items()]
+                text = "\n".join(list_a)
+                await loading_message.delete()
+                await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {n_of_ppl} people in space right now 🧑‍🚀​:\n {text} 📡")
+        else: # data too old new scrape
+            names, number = people_in_space()
+            a_names = [f".{name} - {role} " for name, role in names.items()]
+            text = "\n".join(a_names)
 
-        a_list = list(names.keys())
-        a_names = [f".{name}" for name in a_list]
-        text = "\n".join(a_names)
-        
-        await loading_message.delete()
-        await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space 🧑‍🚀​:\n {text} 📡")
+            await loading_message.delete()
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")

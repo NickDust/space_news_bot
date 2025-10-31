@@ -18,7 +18,8 @@ async def callback_query_router(update, context):
 
 if __name__ == '__main__':
     db = Database()
-    db.create_table()
+    db.create_table_nasa_img()
+    db.create_table_p_in_space()
 
     application = ApplicationBuilder().token(os.getenv("TELEGRAM_API")).build()
     

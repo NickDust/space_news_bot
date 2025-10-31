@@ -1,6 +1,7 @@
 import requests
 from dotenv import load_dotenv
 import os
+from database import Database
 load_dotenv()
 
 img_cache = {}
@@ -20,3 +21,4 @@ def fetch_apod_nasa_img():
     img_cache["url"] = url,
     img_cache["explanation"] = explanation
     return title, url, explanation
+
