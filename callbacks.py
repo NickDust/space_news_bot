@@ -6,6 +6,8 @@ from database import Database
 from scraper import people_in_space
 from datetime import timedelta, datetime
 
+scraping_lock = asyncio.Lock()
+
 class Callback:
     def __init__(self, update, context):
         self.update = update
@@ -81,10 +83,22 @@ class Callback:
                 text = "\n".join(list_a)
                 await loading_message.delete()
                 await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {n_of_ppl} people in space right now 🧑‍🚀​:\n {text} 📡")
-        else: # data too old new scrape
-            names, number = people_in_space()
-            a_names = [f".{name} - {role} " for name, role in names.items()]
-            text = "\n".join(a_names)
+                return
+            else:
+                async with scraping_lock: # data too old new scrape
+                    db.delete()
+                    names, number = people_in_space()
+                    a_names = [f".{name} - {role} " for name, role in names.items()]
+                    text = "\n".join(a_names)
 
-            await loading_message.delete()
-            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")
+                    await loading_message.delete()
+                    await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")
+                    return
+        else:
+            async with scraping_lock(): # data no in db scrape
+                names, number = people_in_space()
+                a_names = [f".{name} - {role} " for name, role in names.items()]
+                text = "\n".join(a_names)
+
+                await loading_message.delete()
+                await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")

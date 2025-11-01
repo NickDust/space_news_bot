@@ -31,6 +31,10 @@ class Database:
                 role VARCHAR (80),
                 last_update TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         self.conn.commit()
+    
+    def delete(self):
+        self.cur.execute("DELETE FROM p_in_space;")
+        self.conn.commit()
 
     def save_p_in_space(self, num_of_people, name, role):
         self.cur.execute("""
