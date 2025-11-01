@@ -20,5 +20,6 @@ def fetch_apod_nasa_img():
     img_cache["title"] = title
     img_cache["url"] = url,
     img_cache["explanation"] = explanation
-    return title, url, explanation
+    print(img_cache)
+    return {"title": title, "url": url, "explanation": explanation}
 
