@@ -1,4 +1,4 @@
-from utils import img_cache, get_space_news
+from utils import img_cache, get_space_news, dangerous_asteroids
 from handlers import image_of_day
 import asyncio
 from open_ai import Client
@@ -24,7 +24,8 @@ class Callback:
             "about": self.about,
             "space_images": self.space_images,
             "p_in_space": self.p_in_space,
-            "news": self.news
+            "news": self.news,
+            "asteroids": self.asteroids
         }
         func = actions.get(self.query.data)
         if func:
@@ -96,7 +97,7 @@ class Callback:
                     await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")
                     return
         else:
-            async with scraping_lock(): # data no in db scrape
+            async with scraping_lock(): # data no in db, scrape
                 names, number = people_in_space()
                 a_names = [f".{name} - {role} " for name, role in names.items()]
                 text = "\n".join(a_names)
@@ -107,4 +108,9 @@ class Callback:
     async def news(self):
         news = get_space_news()
         for n in news:
-            await self.update.callback_query.message.reply_photo(photo=n["image_url"], caption=f"🛰️{n["title"]}\n{n["summary"]}\nRead more: {n["url"]}")
+            await self.update.callback_query.message.reply_photo(photo=n["image_url"], caption=f"🛰️{n["title"]}\n\n{n["summary"]}\nRead more: {n["url"]}")
+    
+    async def asteroids(self):
+        asteroids = dangerous_asteroids()
+        for a in asteroids:
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Dangerous asteroid ☄️:\nName: {a["name"]}\nDistance from us: {a["distance_km"]}km\nApproach date: {a["approach_date"]}")
