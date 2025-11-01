@@ -1,4 +1,4 @@
-from utils import img_cache
+from utils import img_cache, get_space_news
 from handlers import image_of_day
 import asyncio
 from open_ai import Client
@@ -23,7 +23,8 @@ class Callback:
             "save": self.save,
             "about": self.about,
             "space_images": self.space_images,
-            "p_in_space": self.p_in_space
+            "p_in_space": self.p_in_space,
+            "news": self.news
         }
         func = actions.get(self.query.data)
         if func:
@@ -102,3 +103,8 @@ class Callback:
 
                 await loading_message.delete()
                 await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"There are {number} people in space right now 🧑‍🚀​:\n {text} 📡")
+    
+    async def news(self):
+        news = get_space_news()
+        for n in news:
+            await self.update.callback_query.message.reply_photo(photo=n["image_url"], caption=f"🛰️{n["title"]}\n{n["summary"]}\nRead more: {n["url"]}")

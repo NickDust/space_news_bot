@@ -35,6 +35,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[
             InlineKeyboardButton("Space images☄️", callback_data="space_images"),
             InlineKeyboardButton("People in space 🌍", callback_data="p_in_space")],
+            [InlineKeyboardButton("Space News🌐", callback_data="news")],
             [InlineKeyboardButton("What the bot can do 🪐​🚀​", callback_data="about"),
             
         ]]

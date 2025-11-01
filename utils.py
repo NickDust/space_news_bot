@@ -23,3 +23,17 @@ def fetch_apod_nasa_img():
     print(img_cache)
     return {"title": title, "url": url, "explanation": explanation}
 
+def get_space_news():
+    response = requests.get("https://api.spaceflightnewsapi.net/v4/articles/?limit=5&offset=5&ordering=-published_at")
+    data = response.json()
+
+    articles = []
+    for article in data["results"]:
+        articles.append({
+            "title": article["title"],
+            "summary" : article["summary"],
+            "url": article["url"],
+            "image_url": article["image_url"]
+            })
+    print(articles)
+    return articles
