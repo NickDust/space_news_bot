@@ -1,10 +1,12 @@
 from utils import img_cache, get_space_news, dangerous_asteroids
-from handlers import image_of_day
+from handlers import image_of_day, trivia
 import asyncio
 from open_ai import Client
 from database import Database
 from scraper import people_in_space
 from datetime import timedelta, datetime
+from utils import get_quiz
+
 
 scraping_lock = asyncio.Lock()
 
@@ -25,7 +27,11 @@ class Callback:
             "space_images": self.space_images,
             "p_in_space": self.p_in_space,
             "news": self.news,
-            "asteroids": self.asteroids
+            "asteroids": self.asteroids,
+            "quiz": self.quiz,
+            "easy": self.start_quiz,
+            "medium": self.start_quiz,
+            "hard": self.start_quiz
         }
         func = actions.get(self.query.data)
         if func:
@@ -113,4 +119,35 @@ class Callback:
     async def asteroids(self):
         asteroids = dangerous_asteroids()
         for a in asteroids:
-            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Dangerous asteroid ☄️:\nName: {a["name"]}\nDistance from us: {a["distance_km"]}km\nApproach date: {a["approach_date"]}")
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Dangerous asteroid ☄️:\nName: {a["name"]}\n**Distance from us:** {a["distance_km"]}km\n**Approach date:** {a["approach_date"]}")
+    
+    async def quiz(self):
+        await trivia(self.update, self.context)
+
+    async def start_quiz(self):
+        if self.data:
+            user_id = self.update.effective_user.id
+            questions = get_quiz(self.data)
+            await self.query.message.reply_text(f"You selected {self.data}!!")
+                
+            self.context.user_data["questions"] = self.context.bot_data.get("questions", {})
+            self.context.user_data["questions"][user_id] = questions
+            self.context.user_data["progress"] = self.context.bot_data.get("progress", {})
+            self.context.user_data["progress"][user_id] = 0
+
+        
+            q = questions[0]
+            correct = q["correct"]
+            options = ["True", "False"]
+            correct_index = options.index(correct)
+            
+
+            await self.context.bot.send_poll(
+                chat_id=self.update.effective_chat.id,
+                question=q["question"],
+                options=options,
+                is_anonymous=False,
+                type='quiz',
+                correct_option_id=correct_index,
+            )
+                

@@ -1,11 +1,11 @@
 import logging
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, PollAnswerHandler
 from dotenv import load_dotenv
 import os
 load_dotenv()
-from handlers import image_of_day, start
+from handlers import image_of_day, start,trivia, poll_handler
 from callbacks import Callback
-from database import Database 
+from database import Database
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -25,11 +25,12 @@ if __name__ == '__main__':
     
     start_handler = CommandHandler('start', start)
     img_of_day_handler = CommandHandler('Space_images', image_of_day)
+    trivia_handler = CommandHandler("trivia", trivia)
 
     application.add_handler(start_handler)
     application.add_handler(img_of_day_handler)
     application.add_handler(CallbackQueryHandler(callback_query_router))
-
+    application.add_handler(PollAnswerHandler(poll_handler))
 
     application.run_polling()
     db.close()
