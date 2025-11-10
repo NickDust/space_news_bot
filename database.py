@@ -2,7 +2,7 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 load_dotenv()
-
+import random
 
 class Database:
     def __init__(self):
@@ -51,6 +51,19 @@ class Database:
         people = {row[1]: row[2] for row in data}
         last_update = data[0][3]
         return n_of_ppl, people, last_update
+    
+    def get_img_from_db(self):
+        self.cur.execute("SELECT title, description, url FROM nasa_img")
+        data = self.cur.fetchall()
+        if not data:
+            return None
+        random_data = random.choice(data)
+        img = {
+            "title": random_data[0], 
+            "description": random_data[1], 
+            "url": random_data[2]
+        }
+        return img
 
     def save_img(self, title, description, url):
         self.cur.execute("SELECT img_id FROM nasa_img WHERE url = %s;", (url,))

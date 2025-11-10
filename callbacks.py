@@ -125,29 +125,32 @@ class Callback:
         await trivia(self.update, self.context)
 
     async def start_quiz(self):
-        if self.data:
-            user_id = self.update.effective_user.id
-            questions = get_quiz(self.data)
-            await self.query.message.reply_text(f"You selected {self.data}!!")
-                
-            self.context.user_data["questions"] = self.context.bot_data.get("questions", {})
-            self.context.user_data["questions"][user_id] = questions
-            self.context.user_data["progress"] = self.context.bot_data.get("progress", {})
-            self.context.user_data["progress"][user_id] = 0
+        try:
+            if self.data:
+                user_id = self.update.effective_user.id
+                questions = get_quiz(self.data)
+                await self.query.message.reply_text(f"You selected {self.data}!!")
+                    
+                self.context.user_data["questions"] = self.context.bot_data.get("questions", {})
+                self.context.user_data["questions"][user_id] = questions
+                self.context.user_data["progress"] = self.context.bot_data.get("progress", {})
+                self.context.user_data["progress"][user_id] = 0
 
-        
-            q = questions[0]
-            correct = q["correct"]
-            options = ["True", "False"]
-            correct_index = options.index(correct)
             
+                q = questions[0]
+                correct = q["correct"]
+                options = ["True", "False"]
+                correct_index = options.index(correct)
+                
 
-            await self.context.bot.send_poll(
-                chat_id=self.update.effective_chat.id,
-                question=q["question"],
-                options=options,
-                is_anonymous=False,
-                type='quiz',
-                correct_option_id=correct_index,
-            )
+                await self.context.bot.send_poll(
+                    chat_id=self.update.effective_chat.id,
+                    question=q["question"],
+                    options=options,
+                    is_anonymous=False,
+                    type='quiz',
+                    correct_option_id=correct_index,
+                )
+        except IndexError:
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Trivia not avaiable at the moment.\nPlease try later!")
                 

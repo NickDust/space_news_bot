@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 from datetime import date, timedelta
 load_dotenv()
+from database import Database
 
 img_cache = {}
 NASA_URL = "https://api.nasa.gov/"
@@ -21,9 +22,11 @@ def fetch_apod_nasa_img():
         img_cache["title"] = title
         img_cache["url"] = url,
         img_cache["explanation"] = explanation
-        return {"title": title, "url": url, "explanation": explanation}
+        return {"title": title, "url": url, "explanation": explanation}, False
     except Exception as e:
-        return None
+        db = Database()
+        img = db.get_img_from_db()
+        return img, True
 
 def get_space_news():
     response = requests.get("https://api.spaceflightnewsapi.net/v4/articles/?limit=5&offset=5&ordering=-published_at")

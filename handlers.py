@@ -9,7 +9,7 @@ user_progress = {}
 async def image_of_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="🤖​Bot is fetching something for you..")
     
-    apod_img = fetch_apod_nasa_img() 
+    apod_img , from_db = fetch_apod_nasa_img() 
     if apod_img == None:
         await context.bot.sendMessage(chat_id=update.effective_chat.id, text="Problems with NASA services.")
         return
@@ -20,7 +20,10 @@ async def image_of_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-
+    if from_db:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Image taken from your favourites for a problme with NASA services")
+        await update.callback_query.message.reply_photo(photo=apod_img["url"], caption=apod_img["title"])
+        return
     try:
         await update.message.reply_photo(photo=apod_img["url"], caption=apod_img["title"], reply_markup=reply_markup)
     
