@@ -5,12 +5,16 @@ load_dotenv()
 from utils import fetch_apod_nasa_img
 import asyncio
 
+img_cache = {}
 user_progress = {}
 
 async def image_of_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="🤖​Bot is fetching something for you..")
-    
+    user_id = update.effective_user.id
+
     apod_img, from_db = await asyncio.to_thread(fetch_apod_nasa_img)
+    context.bot_data[user_id] = apod_img
+    
     if apod_img == None:
         await context.bot.sendMessage(chat_id=update.effective_chat.id, text="Problems with NASA services.")
         return

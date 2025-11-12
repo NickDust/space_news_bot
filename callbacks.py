@@ -1,4 +1,4 @@
-from utils import img_cache, get_space_news, dangerous_asteroids
+from utils import get_space_news, dangerous_asteroids
 from handlers import image_of_day, trivia
 import asyncio
 from open_ai import Client
@@ -39,6 +39,8 @@ class Callback:
 
     async def explain(self): # Explain the picture with AI but if is not working take directly the nasa explanation
         await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="🤖​ Bot is thinking..")
+        user_id = self.update.effective_user.id
+        img_cache = self.context.bot_data.get(user_id)
         try:
             nasa_text = img_cache["explanation"]
             client = Client()
@@ -60,6 +62,9 @@ class Callback:
 
     async def save(self): # Save img in Postgres database
         try:
+            user_id = self.update.effective_user.id
+            img_cache = self.context.bot_data.get(user_id)
+            print(img_cache)
             db = Database()
             await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="Saving in progress..💫​")
             saved = db.save_img(title=img_cache["title"], description=img_cache["explanation"], url=img_cache["url"])
@@ -113,14 +118,20 @@ class Callback:
     
     async def news(self):
         news = get_space_news()
-        for n in news:
-            await self.update.callback_query.message.reply_photo(photo=n["image_url"], caption=f"🛰️{n["title"]}\n\n{n["summary"]}\nRead more: {n["url"]}")
+        if news:
+            for n in news:
+                await self.update.callback_query.message.reply_photo(photo=n["image_url"], caption=f"🛰️{n["title"]}\n\n{n["summary"]}\nRead more: {n["url"]}")
+        else:
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text="No Data avaiable")
     
     async def asteroids(self):
         asteroids = dangerous_asteroids()
-        for a in asteroids:
-            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Dangerous asteroid ☄️:\nName: {a["name"]}\n**Distance from us:** {a["distance_km"]}km\n**Approach date:** {a["approach_date"]}")
-    
+        if asteroids:
+            for a in asteroids:
+                await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text=f"Dangerous asteroid ☄️:\nName: {a["name"]}\n**Distance from us:** {a["distance_km"]}km\n**Approach date:** {a["approach_date"]}")
+        else:
+            await self.context.bot.send_message(chat_id=self.update.effective_chat.id, text="Trouble with retrieving Information..☄️")
+
     async def quiz(self):
         await trivia(self.update, self.context)
 
