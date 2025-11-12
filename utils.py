@@ -4,6 +4,7 @@ import os
 from datetime import date, timedelta
 load_dotenv()
 from database import Database
+from time import perf_counter
 
 img_cache = {}
 NASA_URL = "https://api.nasa.gov/"
@@ -13,7 +14,8 @@ Take a random image from NASA APOD database.
 def fetch_apod_nasa_img():
     global img_cache
     try:
-        response = requests.get(f"{NASA_URL}/planetary/apod", params={"api_key": os.getenv("NASA_API"), "count": 1}, timeout=10)
+        s = requests.Session()
+        response = s.get(f"{NASA_URL}/planetary/apod", params={"api_key": os.getenv("NASA_API"), "count": 1}, timeout=3)
         data = response.json()[0]
         title = data.get("title")
         url = data.get("url")        
@@ -29,7 +31,8 @@ def fetch_apod_nasa_img():
         return img, True
 
 def get_space_news():
-    response = requests.get("https://api.spaceflightnewsapi.net/v4/articles/?limit=5&offset=5&ordering=-published_at")
+    s = requests.Session()
+    response = s.get("https://api.spaceflightnewsapi.net/v4/articles/?limit=5&offset=5&ordering=-published_at")
     data = response.json()
 
     articles = []
@@ -40,15 +43,16 @@ def get_space_news():
             "url": article["url"],
             "image_url": article["image_url"]
             })
+    
     return articles
 
 def dangerous_asteroids():
     start_date = date.today().strftime("%Y-%m-%d")
     end_date = (date.today() + timedelta(days=7)).strftime("%Y-%m-%d")
-    response = requests.get(f"{NASA_URL}/neo/rest/v1/feed?"
+    s = requests.Session()
+    response = s.get(f"{NASA_URL}/neo/rest/v1/feed?"
                             f"start_date={start_date}&end_date={end_date}&api_key={os.getenv("NASA_API")}")
     data = response.json()
-    print(data)
     results = []
 
     for day, asteroids in data["near_earth_objects"].items():

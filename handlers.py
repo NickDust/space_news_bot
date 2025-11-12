@@ -3,13 +3,14 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
 load_dotenv()
 from utils import fetch_apod_nasa_img
+import asyncio
 
 user_progress = {}
 
 async def image_of_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text="🤖​Bot is fetching something for you..")
     
-    apod_img , from_db = fetch_apod_nasa_img() 
+    apod_img, from_db = await asyncio.to_thread(fetch_apod_nasa_img)
     if apod_img == None:
         await context.bot.sendMessage(chat_id=update.effective_chat.id, text="Problems with NASA services.")
         return
@@ -21,8 +22,8 @@ async def image_of_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     if from_db:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="Image taken from your favourites for a problme with NASA services")
-        await update.callback_query.message.reply_photo(photo=apod_img["url"], caption=apod_img["title"])
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Image taken from peoples favourites for a problem with NASA services")
+        await update.callback_query.message.reply_photo(photo=apod_img["url"], caption=f"{apod_img["title"]}\n\n{apod_img["description"]}")
         return
     try:
         await update.message.reply_photo(photo=apod_img["url"], caption=apod_img["title"], reply_markup=reply_markup)
