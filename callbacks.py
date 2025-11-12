@@ -64,7 +64,6 @@ class Callback:
         try:
             user_id = self.update.effective_user.id
             img_cache = self.context.bot_data.get(user_id)
-            print(img_cache)
             db = Database()
             await self.context.bot.sendMessage(chat_id=self.update.effective_chat.id, text="Saving in progress..💫​")
             saved = db.save_img(title=img_cache["title"], description=img_cache["explanation"], url=img_cache["url"])

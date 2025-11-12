@@ -4,8 +4,6 @@ import os
 from datetime import date, timedelta
 load_dotenv()
 from database import Database
-from time import perf_counter
-
 
 NASA_URL = "https://api.nasa.gov/"
 """
